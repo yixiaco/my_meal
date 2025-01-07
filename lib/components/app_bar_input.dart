@@ -48,21 +48,21 @@ class _AppBarInputState extends State<AppBarInput> {
       ),
       clipBehavior: Clip.antiAlias,
       child: TextSelectionTheme(
-        data: TextSelectionThemeData(selectionColor: Colors.black12),
+        data: TextSelectionThemeData(selectionColor: colorScheme.brandColor3, selectionHandleColor: colorScheme.brandColor),
         child: TextField(
           onChanged: widget.onChanged,
-          cursorColor: Colors.black54,
-          cursorErrorColor: Colors.black54,
+          cursorColor: colorScheme.textColorPrimary,
+          cursorErrorColor: colorScheme.textColorPrimary,
           cursorHeight: 16,
           decoration: InputDecoration(
             hintText: '搜索菜谱',
             hintStyle: TextStyle(color: colorScheme.textColorPlaceholder, fontSize: 14, fontWeight: FontWeight.w500),
-            prefixIcon: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10.0),
+            prefixIcon: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10.0),
               child: Icon(
                 TIcons.search,
                 size: 16,
-                color: Colors.black54,
+                color: colorScheme.textColorPlaceholder,
                 applyTextScaling: false,
               ),
             ),
@@ -70,7 +70,7 @@ class _AppBarInputState extends State<AppBarInput> {
             border: InputBorder.none,
             isDense: true,
             isCollapsed: true,
-            fillColor: const Color(0xFFf0f0f0),
+            fillColor: colorScheme.bgColorSecondaryContainer,
             filled: true,
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16.0, vertical: 5.0), // 调整内边距,

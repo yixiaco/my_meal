@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.mymeal" "\0"
-            VALUE "FileDescription", "my_meal" "\0"
+            VALUE "FileDescription", "我的饭" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "my_meal" "\0"
+            VALUE "InternalName", "我的饭" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.mymeal. All rights reserved." "\0"
             VALUE "OriginalFilename", "my_meal.exe" "\0"
-            VALUE "ProductName", "my_meal" "\0"
+            VALUE "ProductName", "我的饭" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

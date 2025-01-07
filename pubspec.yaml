@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations: #国际化
+    sdk: flutter
   hooks_riverpod: ^2.6.1 #状态共享 https://pub.dev/packages/hooks_riverpod
   flutter_hooks: ^0.21.0
   riverpod_annotation: ^2.6.1
@@ -54,6 +56,8 @@ dev_dependencies:
   riverpod_lint: ^2.6.3
   freezed: ^2.5.7  #对象转json等操作
   json_serializable: ^6.9.0
+  flutter_launcher_icons: ^0.14.2 #设置图标 dart run flutter_launcher_icons
+  package_rename: ^1.8.0 #设置应用和包名 dart run package_rename
 
 
   # The "flutter_lints" package below contains a set of recommended lints to

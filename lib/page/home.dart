@@ -14,10 +14,11 @@ class HomePage extends StatefulHookConsumerWidget {
 class _HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
+    var colorScheme = TTheme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.white.withAlpha(120),
+        backgroundColor: colorScheme.bgColorContainer,
+        surfaceTintColor: colorScheme.bgColorContainer,
         leadingWidth: 40,
         titleSpacing: 0,
         // 中间的搜索框
@@ -50,7 +51,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget _buildBody(BuildContext context) {
     var colorScheme = TTheme.of(context).colorScheme;
     return Container(
-      color: Colors.white,
+      color: colorScheme.bgColorContainer,
       child: Scrollbar(
         radius: const Radius.circular(4),
         child: GridView.builder(
