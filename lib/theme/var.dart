@@ -28,6 +28,24 @@ class ThemeVar {
   static double spacer9 = spacer * 9; // 间距-大-48
   static double spacer10 = spacer * 10; // 间距-大-80
 
+  // Size
+  static double size1 =  2;
+  static double size2 =  4;
+  static double size3 =  6;
+  static double size4 =  8;
+  static double size5 =  12;
+  static double size6 =  16;
+  static double size7 =  20;
+  static double size8 =  24;
+  static double size9 =  28;
+  static double size10 =  32;
+  static double size11 =  36;
+  static double size12 =  40;
+  static double size13 =  48;
+  static double size14 =  56;
+  static double size15 =  64;
+  static double size16 =  72;
+
   static double lineHeightS = 20;
   static double lineHeightBase = 22;
   static double lineHeightL = 24;

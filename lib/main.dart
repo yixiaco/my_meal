@@ -6,8 +6,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:logging/logging.dart';
 import 'package:my_meal/route.dart';
 import 'package:my_meal/theme/theme.dart';
+import 'package:my_meal/basic/global.dart';
 
+import 'components/toast.dart';
 import 'theme/theme_data.dart';
+
+GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
   init();
@@ -29,6 +33,8 @@ void init() {
       print('${record.level.name}: ${record.time}: ${record.message}');
     }
   });
+
+  Global.init();
 }
 
 class MyApp extends StatelessWidget {
@@ -38,36 +44,45 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Logger.root.info(PlatformDispatcher.instance.locale);
-    return MaterialApp(
-      title: '我的饭',
-      theme: ThemeData(
-        brightness: Brightness.light,
-        useMaterial3: true,
-        fontFamily: 'Microsoft YaHei',
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        useMaterial3: true,
-        fontFamily: 'Microsoft YaHei',
-      ),
-      builder: (context, child) {
-        Logger.root.info(Theme.of(context).brightness);
-        return TTheme(
-          data: TThemeData.formBrightness(Theme.of(context).brightness),
-          child: child!,
+    return TTheme(
+      data: TThemeData.auto(context),
+      child: Builder(builder: (context) {
+        var colorScheme = TTheme.of(context).colorScheme;
+        return MaterialApp(
+          title: '我的饭',
+          theme: ThemeData(
+            appBarTheme: AppBarTheme(
+              backgroundColor: colorScheme.bgColorContainer,
+              surfaceTintColor: colorScheme.bgColorContainer,
+              titleSpacing: 6,
+            ),
+            scaffoldBackgroundColor: colorScheme.bgColorContainer,
+            brightness: Brightness.light,
+            useMaterial3: true,
+            fontFamily: 'Microsoft YaHei',
+            colorScheme: ColorScheme.fromSwatch(primarySwatch: colorScheme.brandColor),
+          ),
+          darkTheme: ThemeData(
+            brightness: Brightness.dark,
+            useMaterial3: true,
+            fontFamily: 'Microsoft YaHei',
+            colorScheme: ColorScheme.fromSwatch(primarySwatch: colorScheme.brandColor, brightness: Brightness.dark),
+          ),
+          // 支持中文
+          locale: PlatformDispatcher.instance.locale,
+          supportedLocales: [
+            const Locale('zh', 'CN'),
+          ],
+          localizationsDelegates: const [
+            ...GlobalMaterialLocalizations.delegates,
+          ],
+          initialRoute: RouteQuery.root,
+          routes: {},
+          onGenerateRoute: onGenerateRoute,
+          navigatorKey: navigatorKey,
+          builder: ToastHold.init,
         );
-      },
-      // 支持中文
-      locale: PlatformDispatcher.instance.locale,
-      supportedLocales: [
-        const Locale('zh', 'CN'),
-      ],
-      localizationsDelegates: const [
-        ...GlobalMaterialLocalizations.delegates,
-      ],
-      initialRoute: RouteQuery.root,
-      routes: {},
-      onGenerateRoute: onGenerateRoute,
+      }),
     );
   }
 }

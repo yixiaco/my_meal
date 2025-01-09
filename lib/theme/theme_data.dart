@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/painting.dart';
+import 'package:flutter/widgets.dart';
 import 'package:my_meal/basic/basic.dart';
 
 import 'color_scheme.dart';
@@ -88,6 +88,13 @@ class TThemeData with Diagnosticable {
 
   /// 默认的暗黑样式
   factory TThemeData.dark() => TThemeData(brightness: Brightness.dark);
+
+  /// 根据平台自动选择主题
+  ///
+  /// [context] 构建上下文
+  factory TThemeData.auto(BuildContext context) {
+    return TThemeData.formBrightness(MediaQuery.platformBrightnessOf(context));
+  }
 
   /// 通用字体大小
   double get fontSize => size.lazySizeOf(

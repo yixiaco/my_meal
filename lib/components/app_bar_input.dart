@@ -28,8 +28,7 @@ class _AppBarInputState extends State<AppBarInput> {
 
   /// 有效文本控制器
   TextEditingController get effectiveController =>
-      widget.controller ??
-      (_controller ??= TextEditingController(text: widget.defaultValue));
+      widget.controller ?? (_controller ??= TextEditingController(text: widget.defaultValue));
 
   @override
   void dispose() {
@@ -43,38 +42,33 @@ class _AppBarInputState extends State<AppBarInput> {
     var colorScheme = theme.colorScheme;
     return Container(
       decoration: BoxDecoration(
-        // color: Color(0xFFf0f0f0),
         borderRadius: BorderRadius.circular(100),
       ),
       clipBehavior: Clip.antiAlias,
-      child: TextSelectionTheme(
-        data: TextSelectionThemeData(selectionColor: colorScheme.brandColor3, selectionHandleColor: colorScheme.brandColor),
-        child: TextField(
-          onChanged: widget.onChanged,
-          cursorColor: colorScheme.textColorPrimary,
-          cursorErrorColor: colorScheme.textColorPrimary,
-          cursorHeight: 16,
-          decoration: InputDecoration(
-            hintText: '搜索菜谱',
-            hintStyle: TextStyle(color: colorScheme.textColorPlaceholder, fontSize: 14, fontWeight: FontWeight.w500),
-            prefixIcon: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0),
-              child: Icon(
-                TIcons.search,
-                size: 16,
-                color: colorScheme.textColorPlaceholder,
-                applyTextScaling: false,
-              ),
+      child: TextField(
+        onChanged: widget.onChanged,
+        cursorColor: colorScheme.textColorPrimary,
+        cursorErrorColor: colorScheme.textColorPrimary,
+        cursorHeight: 16,
+        decoration: InputDecoration(
+          hintText: '搜索菜谱',
+          hintStyle: TextStyle(color: colorScheme.textColorPlaceholder, fontSize: 14, fontWeight: FontWeight.w500),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0),
+            child: Icon(
+              TIcons.search,
+              size: 16,
+              color: colorScheme.textColorPlaceholder,
+              applyTextScaling: false,
             ),
-            prefixIconConstraints: const BoxConstraints.expand(height: 16, width: 30),
-            border: InputBorder.none,
-            isDense: true,
-            isCollapsed: true,
-            fillColor: colorScheme.bgColorSecondaryContainer,
-            filled: true,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 5.0), // 调整内边距,
           ),
+          prefixIconConstraints: const BoxConstraints.expand(height: 16, width: 30),
+          border: InputBorder.none,
+          isDense: true,
+          isCollapsed: true,
+          fillColor: colorScheme.bgColorSecondaryContainer,
+          filled: true,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 5.0), // 调整内边距,
         ),
       ),
     );

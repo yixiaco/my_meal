@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'color.dart';
+import 'color_generate.dart';
 
 /// 配色方案
 class TColorScheme with Diagnosticable {
@@ -569,6 +570,16 @@ class TColorScheme with Diagnosticable {
       scrollbarHoverColor: const Color(0x4CFFFFFF),
       scrollTrackColor: const Color(0xFF333333),
     );
+  }
+
+  /// 根据颜色生成主题
+  TColorScheme fromSeed(Color color, {Brightness brightness = Brightness.light}) {
+    var materialColor = generateMaterialColor(color, light: brightness == Brightness.light);
+    if (brightness == Brightness.light) {
+      return lightOf(materialColor);
+    } else {
+      return darkOf(materialColor);
+    }
   }
 
   TColorScheme copyWith({
