@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:my_meal/generated/assets.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqlite3/open.dart';
@@ -73,7 +74,7 @@ class Db {
   /// 创建Table
   ///
   static Future<void> _onCreate(Database db, int version) async {
-    String sql = await PlatformAssetBundle().loadString("assets/sql/init.sql");
+    String sql = await PlatformAssetBundle().loadString(Assets.sqlInit);
     await db.execute(sql);
   }
 

@@ -2,40 +2,54 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'db.dart';
 
-mixin DaoObject {
-  setId(dynamic id);
+/// dao操作
+class DaoOpt<T> {
+  /// 主键名称
+  final String idName;
 
-  Map<String, dynamic> toMap();
+  /// 表名
+  final String tableName;
+
+  /// 设置主键
+  final Function(T t, dynamic id) setId;
+
+  /// 获取主键值
+  final dynamic Function(T t) getId;
+
+  /// 转换为map
+  final Map<String, dynamic> Function(T t) toMap;
+
+  /// 转换为对象
+  final T Function(Map<String, Object?> map) fromMap;
+
+  const DaoOpt({
+    required this.idName,
+    required this.tableName,
+    required this.setId,
+    required this.getId,
+    required this.toMap,
+    required this.fromMap,
+  });
 }
 
 /// 支持数据库操作
 ///
 /// example:
 /// ```dart
-/// class DemoDao extends DaoSupport<Demo> {
-///
-///   DemoDao._();
-///
-///   DemoDao instance = DemoDao._();
-///
-///   @override
-///   get idName => 'id';
-///
-///   @override
-///   get tableName => 'table';
-///
-///   @override
-///   T fromMap(dynamic map) => Demo.fromMap(map);
-/// }
+/// final demoDaoSupport = DaoSupport(DaoOpt<Demo>(
+///   idName: 'demo_id',
+///   tableName: 'demo',
+///   setId: (t, id) => t.demoId = id,
+///   getId: (t) => t.demoId,
+///   toMap: (t) => t.toJson(),
+///   fromMap: (Map<String, Object?> map) => Demo.fromJson(map),
+/// ));
 /// ```
-mixin DaoSupport<T extends DaoObject> {
-  /// 主键名称
-  String get idName;
+class DaoSupport<T> {
+  /// dao对象操作
+  final DaoOpt<T> daoOpt;
 
-  /// 表名
-  String get tableName;
-
-  T fromMap(dynamic map);
+  DaoSupport(this.daoOpt);
 
   DatabaseExecutor get executor => _transaction ?? Db.db;
 
@@ -45,9 +59,9 @@ mixin DaoSupport<T extends DaoObject> {
   ///
   /// example:
   /// ```dart
-  /// await DaoSupport.transaction([DemoDao1.instance, DemoDao2.instance], () {
-  ///   DemoDao1.instance.insert(Demo1());
-  ///   DemoDao2.instance.insert(Demo2());
+  /// await DaoSupport.transaction([demoDaoSupport1, demoDaoSupport2], () {
+  ///   demoDaoSupport1.insert(Demo1());
+  ///   demoDaoSupport2.insert(Demo2());
   /// });
   /// ```
   static Future<T> batchTransaction<T>(List<DaoSupport> s, Future<T> Function() tx) {
@@ -90,7 +104,7 @@ mixin DaoSupport<T extends DaoObject> {
   Future<T?> queryRawForMap(String sql, [List<dynamic>? arguments]) async {
     List<Map<String, Object?>> list = await executor.rawQuery(sql, arguments);
     if (list.isNotEmpty) {
-      return fromMap(list[0]);
+      return daoOpt.fromMap(list[0]);
     }
     return null;
   }
@@ -103,14 +117,14 @@ mixin DaoSupport<T extends DaoObject> {
     List<dynamic>? whereArgs,
   }) async {
     List<Map<String, Object?>> list = await executor.query(
-      tableName,
+      daoOpt.tableName,
       distinct: distinct,
       columns: columns,
       where: where,
       whereArgs: whereArgs,
     );
     if (list.isNotEmpty) {
-      return fromMap(list[0]);
+      return daoOpt.fromMap(list[0]);
     }
     return null;
   }
@@ -118,12 +132,12 @@ mixin DaoSupport<T extends DaoObject> {
   /// 主键查询
   Future<T?> findById(dynamic id) async {
     List<Map<String, Object?>> list = await executor.query(
-      tableName,
-      where: '$idName = ?',
+      daoOpt.tableName,
+      where: '${daoOpt.idName} = ?',
       whereArgs: [id],
     );
     if (list.isNotEmpty) {
-      return fromMap(list[0]);
+      return daoOpt.fromMap(list[0]);
     }
     return null;
   }
@@ -131,21 +145,25 @@ mixin DaoSupport<T extends DaoObject> {
   /// 多主键查询
   Future<List<T>> findByIds(List<dynamic> ids) async {
     List<Map<String, Object?>> list = await executor.query(
-      tableName,
-      where: '$idName in(${DaoSupport.sqlIn(ids.length)})',
+      daoOpt.tableName,
+      where: '${daoOpt.idName} in(${DaoSupport.sqlIn(ids.length)})',
       whereArgs: ids,
     );
     if (list.isNotEmpty) {
-      return list.map((e) => fromMap(e)).toList();
+      return list.map((e) => daoOpt.fromMap(e)).toList();
     }
     return List.empty();
   }
 
-  /// 删除
+  /// 删除数据库中的行的便捷方法。
+  /// Delete from （删除自） table
+  /// where 是更新时要应用的可选 WHERE 子句。传递 null 将删除所有行。
+  /// 您可以在 where 子句中包含 ？s，这将被 whereArgs
+  /// 返回受影响的行数。
   Future<int> deleteById(dynamic id) async {
     return executor.delete(
-      tableName,
-      where: '$idName = ?',
+      daoOpt.tableName,
+      where: '${daoOpt.idName} = ?',
       whereArgs: [id],
     );
   }
@@ -155,18 +173,18 @@ mixin DaoSupport<T extends DaoObject> {
     Batch batch = executor.batch();
     for (var id in ids) {
       batch.delete(
-        tableName,
-        where: '$idName = ?',
+        daoOpt.tableName,
+        where: '${daoOpt.idName} = ?',
         whereArgs: [id],
       );
     }
     return batch.commit();
   }
 
-  /// 插入
+  /// 插入, 返回主键值
   Future<int> insert(T t) async {
-    int id = await executor.insert(tableName, t.toMap());
-    t.setId(id);
+    var id = await executor.insert(daoOpt.tableName, daoOpt.toMap(t));
+    daoOpt.setId(t, id);
     return id;
   }
 
@@ -174,39 +192,48 @@ mixin DaoSupport<T extends DaoObject> {
   Future<List<Object?>> batchInsert(List<T> objects) async {
     Batch batch = executor.batch();
     for (var value in objects) {
-      batch.insert(tableName, value.toMap());
+      batch.insert(daoOpt.tableName, daoOpt.toMap(value));
     }
     List ids = await batch.commit();
     for (int i = 0; i < objects.length; i++) {
-      objects[i].setId(ids[i]);
+      daoOpt.setId(objects[i], ids[i]);
     }
     return ids;
   }
 
   /// 更新
+  /// 如果id为null，则更新所有行。
+  /// 否则更新id值相同的行。
   Future<int> update(T t) async {
-    Map<String, dynamic> map = t.toMap();
-    dynamic id = map[idName];
+    Map<String, dynamic> map = daoOpt.toMap(t);
+    var id = daoOpt.getId(t);
     assert(id != null, 'id cannot be null');
-    return executor.update(
-      tableName,
-      map,
-      where: '$idName = ?',
-      whereArgs: [id],
-    );
+    if (id != null) {
+      return executor.update(
+        daoOpt.tableName,
+        map,
+        where: '${daoOpt.idName} = ?',
+        whereArgs: [id],
+      );
+    } else {
+      return executor.update(
+        daoOpt.tableName,
+        map,
+      );
+    }
   }
 
   /// 批量更新
   Future<List<Object?>> batchUpdate(List<T> objects) async {
     Batch batch = executor.batch();
     for (var value in objects) {
-      Map<String, dynamic> map = value.toMap();
-      dynamic id = map[idName];
+      Map<String, dynamic> map = daoOpt.toMap(value);
+      var id = daoOpt.getId(value);
       assert(id != null, 'id cannot be null');
       batch.update(
-        tableName,
+        daoOpt.tableName,
         map,
-        where: '$idName = ?',
+        where: '${daoOpt.idName} = ?',
         whereArgs: [id],
       );
     }
@@ -214,9 +241,11 @@ mixin DaoSupport<T extends DaoObject> {
   }
 
   /// 保存
-  Future<int> save(T t) async {
-    Map<String, dynamic> map = t.toMap();
-    dynamic id = map[idName];
+  /// 如果id为null，则插入，否则更新
+  /// 插入时返回id值
+  /// 更新返回受影响的行数
+  Future<int> saveOrUpdate(T t) async {
+    var id = daoOpt.getId(t);
     if (id != null) {
       return update(t);
     } else {
@@ -228,24 +257,24 @@ mixin DaoSupport<T extends DaoObject> {
   Future<List<Object?>> saveAll(List<T> objects) async {
     Batch batch = executor.batch();
     for (var t in objects) {
-      Map<String, dynamic> map = t.toMap();
-      dynamic id = map[idName];
+      Map<String, dynamic> map = daoOpt.toMap(t);
+      var id = daoOpt.getId(t);
       if (id != null) {
         batch.update(
-          tableName,
+          daoOpt.tableName,
           map,
-          where: '$idName = ?',
+          where: '${daoOpt.idName} = ?',
           whereArgs: [id],
         );
       } else {
-        batch.insert(tableName, t.toMap());
+        batch.insert(daoOpt.tableName, daoOpt.toMap(t));
       }
     }
     List ids = await batch.commit();
     for (int i = 0; i < objects.length; i++) {
-      Map<String, dynamic> map = objects[i].toMap();
-      if (map[idName] == null) {
-        objects[i].setId(ids[i]);
+      var id = daoOpt.getId(objects[i]);
+      if (id == null) {
+        daoOpt.setId(objects[i], ids[i]);
       }
     }
     return ids;
@@ -256,7 +285,7 @@ mixin DaoSupport<T extends DaoObject> {
     String? where,
     List<dynamic>? whereArgs,
   }) async {
-    StringBuffer sb = StringBuffer("select count(0) from $tableName ");
+    StringBuffer sb = StringBuffer("select count(0) from ${daoOpt.tableName} ");
     if (where != null && where.isNotEmpty) {
       sb.write('where $where');
     }
@@ -273,14 +302,14 @@ mixin DaoSupport<T extends DaoObject> {
     String? orderBy,
   }) async {
     List<Map<String, Object?>> result = await executor.query(
-      tableName,
+      daoOpt.tableName,
       where: where,
       whereArgs: whereArgs,
       limit: limit,
       offset: offset,
       orderBy: orderBy,
     );
-    return result.map((e) => fromMap(e)).toList();
+    return result.map((e) => daoOpt.fromMap(e)).toList();
   }
 
   /// 分页查询
@@ -291,9 +320,9 @@ mixin DaoSupport<T extends DaoObject> {
     int offset = 0,
     String? orderBy,
   }) async {
-    int _count = await count(where: where, whereArgs: whereArgs);
+    int rows = await count(where: where, whereArgs: whereArgs);
     List<T> data;
-    if (_count == 0) {
+    if (rows == 0) {
       data = [];
     } else {
       data = await findAll(
@@ -304,12 +333,12 @@ mixin DaoSupport<T extends DaoObject> {
         orderBy: orderBy,
       );
     }
-    return Page(limit: limit, offset: offset, count: _count, data: data);
+    return Page(limit: limit, offset: offset, count: rows, data: data);
   }
 
   /// 获取最后插入的主键
   Future<int?> lastRowId() async {
-    String sql = "select last_insert_rowid() from $tableName";
+    String sql = "select last_insert_rowid() from ${daoOpt.tableName}";
     List<Map<String, dynamic>> result = await executor.rawQuery(sql);
     if (result.isNotEmpty) {
       return result[0].values.first;
@@ -319,7 +348,7 @@ mixin DaoSupport<T extends DaoObject> {
 
   /// 删除全部
   Future<int> deleteAll() async {
-    return executor.delete(tableName);
+    return executor.delete(daoOpt.tableName);
   }
 
   /// 获取sql in的参数格式?

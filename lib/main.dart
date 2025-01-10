@@ -9,6 +9,7 @@ import 'package:my_meal/theme/theme.dart';
 import 'package:my_meal/basic/global.dart';
 
 import 'components/toast.dart';
+import 'model/cookbook.dart';
 import 'theme/theme_data.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -22,6 +23,10 @@ void main() {
 void init() {
   // 初始化之前如果访问二进制文件，需要先初始化
   WidgetsFlutterBinding.ensureInitialized();
+
+  var cookbook = Cookbook(title: "ddd");
+
+  print(cookbook.toJson());
 
   // 解锁刷新率
   GestureBinding.instance.resamplingEnabled = true;
