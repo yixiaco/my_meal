@@ -46,6 +46,7 @@ class _AppBarInputState extends State<AppBarInput> {
       ),
       clipBehavior: Clip.antiAlias,
       child: TextField(
+        controller: effectiveController,
         onChanged: widget.onChanged,
         cursorColor: colorScheme.textColorPrimary,
         cursorErrorColor: colorScheme.textColorPrimary,

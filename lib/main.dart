@@ -14,13 +14,13 @@ import 'theme/theme_data.dart';
 
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-void main() {
-  init();
+void main() async {
+  await init();
 
   runApp(ProviderScope(child: const MyApp()));
 }
 
-void init() {
+Future<void> init() async {
   // 初始化之前如果访问二进制文件，需要先初始化
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -39,7 +39,7 @@ void init() {
     }
   });
 
-  Global.init();
+  await Global.init();
 }
 
 class MyApp extends StatelessWidget {

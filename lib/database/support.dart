@@ -312,17 +312,19 @@ class DaoSupport<T> {
     return result.map((e) => daoOpt.fromMap(e)).toList();
   }
 
-  /// 分页查询
+  /// 分页查询, [offset]和[page]是可选的，如果传入[page],则将自动转为[offset]
   Future<Page<T>> findPage({
     String? where,
     List<dynamic>? whereArgs,
     int limit = 10,
-    int offset = 0,
+    int? offset,
+    int? page,
     String? orderBy,
   }) async {
-    int rows = await count(where: where, whereArgs: whereArgs);
+    offset = offset ?? ((page ?? 1) - 1) * limit;
+    int $count = await count(where: where, whereArgs: whereArgs);
     List<T> data;
-    if (rows == 0) {
+    if ($count == 0) {
       data = [];
     } else {
       data = await findAll(
@@ -333,7 +335,7 @@ class DaoSupport<T> {
         orderBy: orderBy,
       );
     }
-    return Page(limit: limit, offset: offset, count: rows, data: data);
+    return Page(limit: limit, offset: offset, count: $count, data: data);
   }
 
   /// 获取最后插入的主键
@@ -366,9 +368,16 @@ class DaoSupport<T> {
 }
 
 class Page<T> {
+  /// 每页数量
   final int limit;
+
+  /// 偏移量
   final int offset;
+
+  /// 数据
   final List<T> data;
+
+  /// 总数
   final int count;
 
   const Page({
@@ -377,4 +386,13 @@ class Page<T> {
     required this.data,
     required this.count,
   });
+
+  /// 当前页码
+  int get pageNo => offset ~/ limit + 1;
+
+  /// 总页数
+  int get pageCount => (count / limit).ceil();
+
+  /// 是否是最后一页
+  bool get isLast => pageNo >= pageCount;
 }

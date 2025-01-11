@@ -20,7 +20,7 @@ const double _kFontSizeHeadlineLarge = 36;
 const double _kFontSizeDisplayMedium = 48;
 const double _kFontSizeDisplayLarge = 64;
 // 字体行高 token
-const _kDifference = 5;
+const _kDifference = 3;
 const _kLineHeightLinkSmall = (20 - _kDifference) / _kFontSizeLinkSmall;
 const _kLineHeightLinkMedium = (22 - _kDifference) / _kFontSizeLinkMedium;
 const _kLineHeightLinkLarge = (24 - _kDifference) / _kFontSizeLinkLarge;
