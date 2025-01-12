@@ -1,16 +1,18 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:logging/logging.dart';
 
-typedef OnPickImageCallback = void Function(XFile image);
+typedef OnPickImageCallback = FutureOr<void> Function(XFile image);
 
 /// 底部弹出相机和相册选择
 void showCameraAndGalleryBottomSheet(BuildContext context, OnPickImageCallback onPickImage) {
   showModalBottomSheet(
     context: context,
     builder: (_) => BottomSheet(
-      enableDrag: true,
+      enableDrag: false,
       elevation: 4,
       backgroundColor: Colors.transparent,
       onClosing: () => print('onClosing'),
@@ -50,10 +52,10 @@ Future<void> _jump(BuildContext context, ImageSource source, OnPickImageCallback
   final ImagePicker picker = ImagePicker();
   // Pick an image.
   final XFile? image = await picker.pickImage(source: source);
-  print('path: ${image?.path}, name: ${image?.name}');
+  Logger.root.info('path: ${image?.path}, name: ${image?.name}');
   if (image != null) {
     // 先关闭底部弹窗再跳转
     Navigator.pop(context);
-    onPickImage(image);
+    await onPickImage(image);
   }
 }

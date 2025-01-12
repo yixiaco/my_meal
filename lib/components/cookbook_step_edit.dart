@@ -1,13 +1,18 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:logging/logging.dart';
 import 'package:my_meal/components/camera_and_gallery_bottom_sheet.dart';
 import 'package:my_meal/model/cookbook.dart';
 import 'package:my_meal/theme/theme.dart';
 import 'package:my_meal/theme/theme_data.dart';
 import 'package:my_meal/theme/var.dart';
+import 'package:my_meal/util/image_file_util.dart';
+
+import 'cookbook_reorder.dart';
 
 class CookbookStepEdit extends StatefulHookConsumerWidget {
   const CookbookStepEdit(this.steps, {super.key});
@@ -48,7 +53,7 @@ class _CookbookStepEditState extends ConsumerState<CookbookStepEdit> {
 
   Widget _buildStepItem(CookbookStep step, int index, BuildContext context, TThemeData theme) {
     var colorScheme = theme.colorScheme;
-    var textEditingController = useTextEditingController(text: step.description);
+    var textEditingController = useTextEditingController(text: step.description, keys: [ObjectKey(step)]);
 
     Widget child;
     if (step.imagePath != null) {
@@ -70,27 +75,46 @@ class _CookbookStepEditState extends ConsumerState<CookbookStepEdit> {
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      spacing: 20,
+      spacing: 10,
       children: [
         Text('步骤${index + 1}', style: theme.fontData.fontTitleSmall),
         MouseRegion(
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
             onTap: () {
-              showCameraAndGalleryBottomSheet(context, (image) {
+              showCameraAndGalleryBottomSheet(context, (image) async {
+                // 获取文件扩展名
+                var name = image.name.contains('.') ? '.${image.name.split('.').last}' : '';
+
+                var tempPath = await ImageFileUtil.copyBytesToTempFile(await image.readAsBytes(), extension: name);
+
+                Logger.root.info('临时文件：$tempPath');
                 setState(() {
-                  step.imagePath = image.path;
+                  step.imagePath = tempPath;
                 });
               });
             },
-            child: Container(
-              height: 250,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(ThemeVar.borderRadiusExtraLarge),
-                color: colorScheme.bgColorSecondaryContainer,
+            child: Material(
+              elevation: 0.5,
+              borderRadius: BorderRadius.circular(ThemeVar.borderRadiusExtraLarge),
+              color: colorScheme.bgColorSecondaryContainer,
+              clipBehavior: Clip.antiAlias,
+              child: SizedBox(
+                height: 250,
+                child: child,
               ),
-              child: child,
             ),
+            //
+            //
+            // child: Container(
+            //   height: 250,
+            //   decoration: BoxDecoration(
+            //     borderRadius: BorderRadius.circular(ThemeVar.borderRadiusExtraLarge),
+            //     color: colorScheme.bgColorSecondaryContainer,
+            //   ),
+            //   clipBehavior: Clip.antiAlias,
+            //   child: child,
+            // ),
           ),
         ),
         TextFormField(
@@ -101,6 +125,11 @@ class _CookbookStepEditState extends ConsumerState<CookbookStepEdit> {
             border: InputBorder.none,
             isCollapsed: true,
           ),
+          onChanged: (value) {
+            setState(() {
+              step.description = value;
+            });
+          },
           maxLines: null,
           style: theme.fontData.fontBodyLarge,
         )
@@ -118,7 +147,25 @@ class _CookbookStepEditState extends ConsumerState<CookbookStepEdit> {
             backgroundColor: colorScheme.bgColorSecondaryContainer,
             overlayColor: colorScheme.bgColorSecondaryContainerActive,
           ),
-          onPressed: () {},
+          onPressed: () async {
+            var list = await Navigator.of(context).push<List<CookbookStep>>(CupertinoPageRoute(
+              builder: (BuildContext context) => CookbookReorder(
+                title: '调整步骤',
+                list: widget.steps,
+                itemBuilder: (context, t, index) {
+                  return Text('步骤${index + 1}: ${t.description}', style: TextStyle(fontWeight: FontWeight.bold));
+                },
+              ),
+            ));
+
+            if (list != null) {
+              setState(() {
+                widget.steps.clear();
+                widget.steps.addAll(list);
+                Logger.root.fine(list);
+              });
+            }
+          },
           child: Text(
             '调整步骤',
             style: TextStyle(color: colorScheme.textColorPrimary, fontWeight: FontWeight.bold, height: 3),

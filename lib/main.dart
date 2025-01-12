@@ -15,31 +15,9 @@ import 'theme/theme_data.dart';
 GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
-  await init();
+  await Global.init();
 
   runApp(ProviderScope(child: const MyApp()));
-}
-
-Future<void> init() async {
-  // 初始化之前如果访问二进制文件，需要先初始化
-  WidgetsFlutterBinding.ensureInitialized();
-
-  var cookbook = Cookbook(title: "ddd");
-
-  print(cookbook.toJson());
-
-  // 解锁刷新率
-  GestureBinding.instance.resamplingEnabled = true;
-
-  // 日志记录
-  Logger.root.level = Level.ALL; // defaults to Level.INFO
-  Logger.root.onRecord.listen((record) {
-    if (kDebugMode) {
-      print('${record.level.name}: ${record.time}: ${record.message}');
-    }
-  });
-
-  await Global.init();
 }
 
 class MyApp extends StatelessWidget {

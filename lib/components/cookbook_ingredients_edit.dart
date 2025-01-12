@@ -1,6 +1,9 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:logging/logging.dart';
+import 'package:my_meal/components/cookbook_reorder.dart';
 import 'package:my_meal/model/cookbook.dart';
 import 'package:my_meal/theme/theme.dart';
 import 'package:my_meal/theme/theme_data.dart';
@@ -16,7 +19,6 @@ class CookbookIngredientsEdit extends StatefulHookConsumerWidget {
 }
 
 class _CookbookIngredientsEditState extends ConsumerState<CookbookIngredientsEdit> {
-
   @override
   void initState() {
     super.initState();
@@ -39,8 +41,10 @@ class _CookbookIngredientsEditState extends ConsumerState<CookbookIngredientsEdi
       children: [
         Text('用料', style: theme.fontData.fontTitleMedium),
         SizedBox(height: 20),
-        for (var ingredient in widget.ingredients)
-          ...[_buildIngredients(ingredient, context, theme), Divider(thickness: 0.5, color: colorScheme.borderLevel1Color)],
+        for (var ingredient in widget.ingredients) ...[
+          _buildIngredients(ingredient, context, theme),
+          Divider(thickness: 0.5, color: colorScheme.borderLevel1Color)
+        ],
         SizedBox(height: 20),
         _buildButton(context, theme),
       ],
@@ -50,8 +54,8 @@ class _CookbookIngredientsEditState extends ConsumerState<CookbookIngredientsEdi
   /// 构建食材输入框和用量输入框
   Widget _buildIngredients(CookbookIngredients ingredient, BuildContext context, TThemeData theme) {
     var colorScheme = theme.colorScheme;
-    var textEditingController1 = useTextEditingController(text: ingredient.name);
-    var textEditingController2 = useTextEditingController(text: ingredient.dosage);
+    var textEditingController1 = useTextEditingController(text: ingredient.name, keys: [ObjectKey(ingredient)]);
+    var textEditingController2 = useTextEditingController(text: ingredient.dosage, keys: [ObjectKey(ingredient)]);
     var padding = EdgeInsets.symmetric(vertical: 8);
     return Row(
       children: [
@@ -102,7 +106,30 @@ class _CookbookIngredientsEditState extends ConsumerState<CookbookIngredientsEdi
             backgroundColor: colorScheme.bgColorSecondaryContainer,
             overlayColor: colorScheme.bgColorSecondaryContainerActive,
           ),
-          onPressed: () {},
+          onPressed: () async {
+            var list = await Navigator.of(context).push<List<CookbookIngredients>>(CupertinoPageRoute(
+              builder: (BuildContext context) => CookbookReorder(
+                title: '调整用料',
+                list: widget.ingredients,
+                itemBuilder: (context, t, index) {
+                  return Row(
+                    children: [
+                      Expanded(flex: 3, child: Text(t.name)),
+                      Expanded(flex: 2, child: Text(t.dosage)),
+                    ],
+                  );
+                },
+              ),
+            ));
+
+            if (list != null) {
+              setState(() {
+                widget.ingredients.clear();
+                widget.ingredients.addAll(list);
+                Logger.root.fine(list);
+              });
+            }
+          },
           child: Text(
             '调整用料',
             style: TextStyle(color: colorScheme.textColorPrimary, fontWeight: FontWeight.bold, height: 3),
@@ -126,5 +153,4 @@ class _CookbookIngredientsEditState extends ConsumerState<CookbookIngredientsEdi
       ],
     );
   }
-
 }

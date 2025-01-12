@@ -1,17 +1,24 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:logging/logging.dart';
+import 'package:my_meal/components/camera_and_gallery_bottom_sheet.dart';
 import 'package:my_meal/components/cookbook_ingredients_edit.dart';
 import 'package:my_meal/components/cookbook_step_edit.dart';
 import 'package:my_meal/components/toast.dart';
 import 'package:my_meal/dao/cookbook_dao.dart';
 import 'package:my_meal/model/cookbook.dart';
+import 'package:my_meal/page/cookbook/cookbook_preview.dart';
+import 'package:my_meal/route.dart';
+import 'package:my_meal/state/states.dart';
 import 'package:my_meal/theme/theme.dart';
 import 'package:my_meal/theme/theme_data.dart';
+import 'package:my_meal/util/image_file_util.dart';
 
 class CookbookEdit extends StatefulHookConsumerWidget {
   const CookbookEdit({super.key});
@@ -30,7 +37,7 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
 
   @override
   void initState() {
-    SchedulerBinding.instance.addPostFrameCallback((Duration duration) {
+    SchedulerBinding.instance.addPostFrameCallback((Duration duration) async {
       if (mounted) {
         // 获取路由参数
         var arguments = ModalRoute.of(context)?.settings.arguments;
@@ -40,14 +47,21 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
               _cookbook.coverImagePath = path;
               steps = [];
               ingredients = [];
+              _initCookbook();
             });
-          } else if(arguments case {'id': String? id}) {
-            // TODO: 从数据库中读取菜谱信息
-            setState(() {
-              _cookbook = Cookbook();
-              steps = [];
-              ingredients = [];
-            });
+          } else if (arguments case {'id': int id}) {
+            var cookbook = await cookbookDaoSupport.findById(id);
+            if (cookbook == null) {
+              Navigator.maybePop(context);
+              return;
+            } else {
+              setState(() {
+                _cookbook = cookbook;
+                steps = CookbookStep.fromJsonArrayString(cookbook.stepJson);
+                ingredients = CookbookIngredients.fromJsonArrayString(cookbook.ingredientsJson);
+                _initCookbook();
+              });
+            }
           } else {
             print('参数错误');
             Navigator.maybePop(context);
@@ -65,6 +79,11 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
     super.initState();
   }
 
+  void _initCookbook() {
+    _titleController.text = _cookbook.title;
+    _subtitleController.text = _cookbook.subtitle ?? '';
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -76,13 +95,19 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
   Widget build(BuildContext context) {
     super.build(context);
     var theme = TTheme.of(context);
-    return Scaffold(
-      appBar: _buildAppBar(context, theme),
-      body: _body(context, theme),
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (context, didPop) {
+        // TODO： 提示未保存
+      },
+      child: Scaffold(
+        appBar: _buildAppBar(theme),
+        body: _body(theme),
+      ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, TThemeData theme) {
+  PreferredSizeWidget _buildAppBar(TThemeData theme) {
     var colorScheme = theme.colorScheme;
     return AppBar(
       leadingWidth: 40,
@@ -99,14 +124,23 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
             backgroundColor: colorScheme.bgColorSecondaryContainer,
             overlayColor: colorScheme.bgColorSecondaryContainerActive,
           ),
-          onPressed: () {},
+          onPressed: () {
+            // 预览需要传递对象过去
+            Navigator.of(context).push(CupertinoPageRoute(
+              builder: (BuildContext context) => CookbookPreview(
+                cookbook: _cookbook,
+                steps: steps,
+                ingredients: ingredients,
+              ),
+            ));
+          },
           child: Text('预览', style: TextStyle(color: colorScheme.textColorPrimary, fontWeight: FontWeight.bold)),
         ),
       ],
     );
   }
 
-  Widget _body(BuildContext context, TThemeData theme) {
+  Widget _body(TThemeData theme) {
     var colorScheme = theme.colorScheme;
     return SingleChildScrollView(
       child: Form(
@@ -114,11 +148,29 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
         child: Column(
           children: [
             if (_cookbook.coverImagePath != null)
-              Image.file(
-                File(_cookbook.coverImagePath!),
-                width: double.infinity,
-                height: 400,
-                fit: BoxFit.cover,
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () {
+                    showCameraAndGalleryBottomSheet(context, (image) async {
+                      // 获取文件扩展名
+                      var name = image.name.contains('.') ? '.${image.name.split('.').last}' : '';
+
+                      var tempPath = await ImageFileUtil.copyBytesToTempFile(await image.readAsBytes(), extension: name);
+
+                      Logger.root.info('临时文件：$tempPath');
+                      setState(() {
+                        _cookbook.coverImagePath = tempPath;
+                      });
+                    });
+                  },
+                  child: Image.file(
+                    File(_cookbook.coverImagePath!),
+                    width: double.infinity,
+                    height: 400,
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -163,7 +215,7 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
                 ],
               ),
             ),
-            _buildPublish(context, theme)
+            _buildPublish(theme)
           ],
         ),
       ),
@@ -171,7 +223,7 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
   }
 
   /// 发布按钮
-  Widget _buildPublish(BuildContext context, TThemeData theme) {
+  Widget _buildPublish(TThemeData theme) {
     var colorScheme = theme.colorScheme;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
@@ -190,20 +242,34 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
             ),
           ),
         ),
-        onTap: () {
+        onTap: () async {
           var validateGranularly = _formKey.currentState!.validateGranularly();
           if (validateGranularly.isEmpty) {
+            _cookbook.ingredientsJson = jsonEncode(ingredients);
+            _cookbook.stepJson = jsonEncode(steps);
             if (_cookbook.cookbookId == null) {
               _cookbook.createTime = DateTime.now();
               _cookbook.updateTime = DateTime.now();
+              // 保存到数据库中, 以获取新的cookbookId
+              await cookbookDaoSupport.saveOrUpdate(_cookbook);
             } else {
               _cookbook.updateTime = DateTime.now();
             }
-            _cookbook.ingredientsJson = jsonEncode(ingredients);
+            // 将图片移动到菜谱文件夹中，并改变对象中的图片地址
+            await ImageFileUtil.saveCookbookImage(_cookbook, steps);
+            // 更新步骤
             _cookbook.stepJson = jsonEncode(steps);
-            // TODO: 将图片移动到系统文件夹中，并改变对象中的图片地址
+
+            Logger.root.info('保存或更新菜谱： $_cookbook');
+
             // 保存到数据库中
-            cookbookDaoSupport.saveOrUpdate(_cookbook);
+            await cookbookDaoSupport.saveOrUpdate(_cookbook);
+
+            // 清除临时文件
+            await ImageFileUtil.clearTempFiles();
+
+            ref.refresh(refreshProvider);
+            Navigator.maybePop(context);
           } else {
             ToastHold.show(
               context,

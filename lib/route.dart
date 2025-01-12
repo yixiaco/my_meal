@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:my_meal/page/cookbook/cookbook_edit.dart';
+import 'package:my_meal/page/cookbook/cookbook_preview.dart';
 import 'package:my_meal/page/home.dart';
 
 class RouteQuery {
@@ -9,10 +10,13 @@ class RouteQuery {
   static const String root = '/';
   /// 创建菜谱
   static const String cookbookEdit = '/cookbookEdit';
+  /// 预览菜谱
+  static const String cookbookPreview = '/cookbookPreview';
 
   static final routes = {
     root: HomePage(),
     cookbookEdit: CookbookEdit(),
+    cookbookPreview: CookbookPreview(),
   };
 }
 

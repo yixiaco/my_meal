@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 // 必要的：关联到 Freezed 代码生成器
@@ -55,6 +57,21 @@ class CookbookIngredients with _$CookbookIngredients {
   }) = _CookbookIngredients;
 
   factory CookbookIngredients.fromJson(Map<String, Object?> json) => _$CookbookIngredientsFromJson(json);
+
+  static List<CookbookIngredients> fromJsonArrayString(String json) {
+    final List<dynamic> dataList = jsonDecode(json);
+    return dataList.map((e) => CookbookIngredients.fromJson(e)).toList();
+  }
+
+  factory CookbookIngredients.fromJsonObjectString(String json) {
+    final data = jsonDecode(json);
+    return CookbookIngredients.fromJson(data);
+  }
+
+  static String toJsonArrayString(List<CookbookIngredients> dataList) {
+    final jsonList = dataList.map((e) => e.toJson()).toList();
+    return jsonEncode(jsonList);
+  }
 }
 
 /// 菜谱步骤
@@ -69,4 +86,19 @@ class CookbookStep with _$CookbookStep {
   }) = _CookbookStep;
 
   factory CookbookStep.fromJson(Map<String, Object?> json) => _$CookbookStepFromJson(json);
+
+  static List<CookbookStep> fromJsonArrayString(String json) {
+    final List<dynamic> dataList = jsonDecode(json);
+    return dataList.map((e) => CookbookStep.fromJson(e)).toList();
+  }
+
+  factory CookbookStep.fromJsonObjectString(String json) {
+    final data = jsonDecode(json);
+    return CookbookStep.fromJson(data);
+  }
+
+  static String toJsonArrayString(List<CookbookStep> dataList) {
+    final jsonList = dataList.map((e) => e.toJson()).toList();
+    return jsonEncode(jsonList);
+  }
 }
