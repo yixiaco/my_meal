@@ -1,9 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:logging/logging.dart';
-import 'package:my_meal/components/cookbook_reorder.dart';
 import 'package:my_meal/model/cookbook.dart';
 import 'package:my_meal/theme/theme.dart';
 import 'package:my_meal/theme/theme_data.dart';
@@ -19,7 +14,6 @@ class CookbookIngredientsPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var theme = TTheme.of(context);
-    var colorScheme = theme.colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
