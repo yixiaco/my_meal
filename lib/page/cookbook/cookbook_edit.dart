@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -28,12 +29,26 @@ class CookbookEdit extends StatefulHookConsumerWidget {
 }
 
 class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepAliveClientMixin {
+  /// 菜谱对象
   Cookbook _cookbook = Cookbook();
+
+  /// 步骤列表
   List<CookbookStep> steps = [];
+
+  /// 用料列表
   List<CookbookIngredients> ingredients = [];
+
+  /// 表单key
   final _formKey = GlobalKey<FormState>();
+
+  /// 标题文本控制器
   final _titleController = TextEditingController();
+
+  /// 描述文本控制器
   final _subtitleController = TextEditingController();
+
+  /// 是否准备发布
+  final isPublish = ValueNotifier(false);
 
   @override
   void initState() {
@@ -96,6 +111,7 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
     super.build(context);
     var theme = TTheme.of(context);
     return MyWillPopScope(
+      shouldPop: isPublish,
       child: Scaffold(
         appBar: _buildAppBar(theme),
         body: _body(theme),
@@ -262,6 +278,8 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
 
             // 保存到数据库中
             await cookbookDaoSupport.saveOrUpdate(_cookbook);
+
+            isPublish.value = true;
 
             // 清除临时文件
             await ImageFileUtil.clearTempFiles();
