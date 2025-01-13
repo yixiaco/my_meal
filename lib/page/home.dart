@@ -6,6 +6,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:logging/logging.dart';
 import 'package:my_meal/components/app_bar_input.dart';
 import 'package:my_meal/components/camera_and_gallery_bottom_sheet.dart';
+import 'package:my_meal/components/show_dialog.dart';
 import 'package:my_meal/dao/cookbook_dao.dart';
 import 'package:my_meal/icons/t_icons.dart';
 import 'package:my_meal/model/cookbook.dart';
@@ -93,9 +94,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     return _isSelectMode && _selectedId.isNotEmpty
         ? FloatingActionButton(
             onPressed: () async {
-              await deleteIds(_selectedId.toList());
-              _closeSelect();
-              _loadData();
+              var isDelete = await showAskDialog<bool>(context: context, content: '确定删除所选的菜谱？');
+              if (isDelete == true) {
+                await deleteIds(_selectedId.toList());
+                _closeSelect();
+                _loadData();
+              }
             },
             mini: true,
             backgroundColor: colorScheme.errorColor,
