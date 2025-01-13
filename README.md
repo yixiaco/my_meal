@@ -2,15 +2,21 @@
 
 我的饭
 
-## Getting Started
+## 设置项目图标
+1. 替换`assets/icon/icon.jpg`下的文件或修改`flutter_launcher_icons.yaml`中的icon地址
+2. 运行以下命令
+```shell
+dart run flutter_launcher_icons
+```
 
-This project is a starting point for a Flutter application.
+## 注意事项
 
-A few resources to get you started if this is your first Flutter project:
+### 要在部署应用程序时禁用`AndroidManifest.xml`Impeller，请在项目文件的标签下添加以下设置 `<application>`
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+android项目已关闭Impeller
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```xml
+<meta-data
+android:name="io.flutter.embedding.android.EnableImpeller"
+android:value="false" />
+```

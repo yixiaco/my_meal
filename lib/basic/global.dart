@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
@@ -18,8 +20,11 @@ class Global {
 
     print(packageInfo);
 
-    // 解锁刷新率
-    GestureBinding.instance.resamplingEnabled = true;
+    // 在桌面平台上，开启重采样。移动端会有滚动跳跃的问题
+    if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+      // 解锁刷新率
+      GestureBinding.instance.resamplingEnabled = true;
+    }
 
     // 日志记录
     Logger.root.level = Level.ALL; // defaults to Level.INFO

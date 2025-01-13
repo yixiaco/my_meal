@@ -68,10 +68,17 @@ class _HomePageState extends ConsumerState<HomePage> {
     });
 
     return PopScope(
-      canPop: !_isSelectMode,
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          return;
+        }
         // 当发生了返回事件时，关闭选择模式
         _closeSelect();
+        // 如果可以继续返回的话，继续返回
+        if (Navigator.of(context).canPop()) {
+          Navigator.pop(context);
+        }
       },
       child: Scaffold(
         appBar: _buildArrBar(themeData),

@@ -10,11 +10,11 @@ import 'package:logging/logging.dart';
 import 'package:my_meal/components/camera_and_gallery_bottom_sheet.dart';
 import 'package:my_meal/components/cookbook_ingredients_edit.dart';
 import 'package:my_meal/components/cookbook_step_edit.dart';
+import 'package:my_meal/components/my_will_pop_scope.dart';
 import 'package:my_meal/components/toast.dart';
 import 'package:my_meal/dao/cookbook_dao.dart';
 import 'package:my_meal/model/cookbook.dart';
 import 'package:my_meal/page/cookbook/cookbook_preview.dart';
-import 'package:my_meal/route.dart';
 import 'package:my_meal/state/states.dart';
 import 'package:my_meal/theme/theme.dart';
 import 'package:my_meal/theme/theme_data.dart';
@@ -95,11 +95,7 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
   Widget build(BuildContext context) {
     super.build(context);
     var theme = TTheme.of(context);
-    return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (context, didPop) {
-        // TODO： 提示未保存
-      },
+    return MyWillPopScope(
       child: Scaffold(
         appBar: _buildAppBar(theme),
         body: _body(theme),
@@ -123,6 +119,7 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
           style: OutlinedButton.styleFrom(
             backgroundColor: colorScheme.bgColorSecondaryContainer,
             overlayColor: colorScheme.bgColorSecondaryContainerActive,
+            visualDensity: VisualDensity.compact,
           ),
           onPressed: () {
             // 预览需要传递对象过去
@@ -156,7 +153,8 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
                       // 获取文件扩展名
                       var name = image.name.contains('.') ? '.${image.name.split('.').last}' : '';
 
-                      var tempPath = await ImageFileUtil.copyBytesToTempFile(await image.readAsBytes(), extension: name);
+                      var tempPath =
+                          await ImageFileUtil.copyBytesToTempFile(await image.readAsBytes(), extension: name);
 
                       Logger.root.info('临时文件：$tempPath');
                       setState(() {

@@ -92,9 +92,10 @@ class _CookbookEditState extends ConsumerState<CookbookPreview> with AutomaticKe
             style: OutlinedButton.styleFrom(
               backgroundColor: colorScheme.bgColorSecondaryContainer,
               overlayColor: colorScheme.bgColorSecondaryContainerActive,
+              visualDensity: VisualDensity.compact,
             ),
             onPressed: () {
-              Navigator.restorablePushReplacementNamed(context, RouteQuery.cookbookEdit,
+              Navigator.pushReplacementNamed(context, RouteQuery.cookbookEdit,
                   arguments: {'id': _cookbook.cookbookId});
             },
             child: Text('编辑', style: TextStyle(color: colorScheme.textColorPrimary, fontWeight: FontWeight.bold)),
