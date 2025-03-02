@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -51,7 +52,9 @@ class _CookbookEditState extends ConsumerState<CookbookPreview> with AutomaticKe
                 });
               }
             } else {
-              print('参数错误');
+              if (kDebugMode) {
+                print('参数错误');
+              }
               Navigator.maybePop(context);
             }
           }

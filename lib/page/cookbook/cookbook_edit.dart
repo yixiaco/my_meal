@@ -78,7 +78,9 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
               });
             }
           } else {
-            print('参数错误');
+            if (kDebugMode) {
+              print('参数错误');
+            }
             Navigator.maybePop(context);
           }
         }
@@ -86,7 +88,9 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
     });
     _titleController.addListener(() {
       _cookbook.title = _titleController.text.trim();
-      print(_cookbook.title);
+      if (kDebugMode) {
+        print(_cookbook.title);
+      }
     });
     _subtitleController.addListener(() {
       _cookbook.subtitle = _subtitleController.text.trim();

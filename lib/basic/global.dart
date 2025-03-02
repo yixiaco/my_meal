@@ -18,7 +18,9 @@ class Global {
 
     packageInfo = await PackageInfo.fromPlatform();
 
-    print(packageInfo);
+    if (kDebugMode) {
+      print(packageInfo);
+    }
 
     // 在桌面平台上，开启重采样。移动端会有滚动跳跃的问题
     if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {

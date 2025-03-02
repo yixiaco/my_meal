@@ -32,7 +32,7 @@ HSVColor rgbToHsv(double r, double g, double b) {
 
 /// RGB转为HEX，遵循CSS样式风格
 String rgbToHex(Color color) {
-  var hex = color.value.toRadixString(16).padLeft(8, '0');
+  var hex = color.toARGB32().toRadixString(16).padLeft(8, '0');
   return hex.substring(2) + hex.substring(0, 2);
 }
 
@@ -170,7 +170,7 @@ List<Color> generate(Color color, {bool light = true, Color? backgroundColor}) {
 /// 生成 MaterialColor
 MaterialColor generateMaterialColor(Color color, {bool light = true, Color? backgroundColor}) {
   var colors = generate(color, light: light, backgroundColor: backgroundColor);
-  return MaterialColor(color.value, {
+  return MaterialColor(color.toARGB32(), {
     50: colors[0],
     100: colors[1],
     200: colors[2],

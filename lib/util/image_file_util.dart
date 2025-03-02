@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:dartx/dartx_io.dart';
+import 'package:flutter/foundation.dart';
 import 'package:my_meal/basic/global.dart';
 import 'package:my_meal/model/cookbook.dart';
 import 'package:path/path.dart';
@@ -29,7 +29,9 @@ class ImageFileUtil {
     final Directory dir = await getTemporaryDirectory();
 
     var tempDir = normalize(join(dir.path, Global.packageInfo.packageName));
-    print(tempDir);
+    if (kDebugMode) {
+      print(tempDir);
+    }
     // 生成文件名
     final String targetFilePath = normalize(join(tempDir, digest.toString() + extension));
 
