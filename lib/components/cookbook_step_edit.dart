@@ -82,7 +82,7 @@ class _CookbookStepEditState extends ConsumerState<CookbookStepEdit> {
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
             onTap: () {
-              showCameraAndGalleryBottomSheet(context, (image) async {
+              showCameraAndGalleryBottomSheet(context, useImport: false, onPickImage: (image) async {
                 // 获取文件扩展名
                 var name = image.name.contains('.') ? '.${image.name.split('.').last}' : '';
 

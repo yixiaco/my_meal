@@ -102,3 +102,60 @@ class CookbookStep with _$CookbookStep {
     return jsonEncode(jsonList);
   }
 }
+
+/// 菜谱数据传输对象
+class CookbookDto {
+  /// 菜谱
+  late Cookbook _cookbook;
+
+  /// 配料
+  late List<CookbookIngredients> ingredients;
+
+  /// 步骤
+  late List<CookbookStep> steps;
+
+  CookbookDto({
+    Cookbook? cookbook,
+    this.ingredients = const [],
+    this.steps = const [],
+  }) {
+    _cookbook = cookbook ?? Cookbook();
+  }
+
+  /// 生成有效菜谱
+  Cookbook get cookbook {
+    _cookbook.ingredientsJson = CookbookIngredients.toJsonArrayString(ingredients);
+    _cookbook.stepJson = CookbookStep.toJsonArrayString(steps);
+    return _cookbook;
+  }
+
+  /// 从菜谱生成
+  static CookbookDto fromCookbook(Cookbook cookbook) {
+    final ingredients = CookbookIngredients.fromJsonArrayString(cookbook.ingredientsJson);
+    final steps = CookbookStep.fromJsonArrayString(cookbook.stepJson);
+    return CookbookDto(cookbook: cookbook, ingredients: ingredients, steps: steps);
+  }
+
+  /// 生成Map
+  Map<String, dynamic> toMap() {
+    return cookbook.toJson();
+  }
+
+  /// 从Map生成
+  static CookbookDto fromMap(Map<String, dynamic> map) {
+    final cookbook = Cookbook.fromJson(map);
+    final ingredients = CookbookIngredients.fromJsonArrayString(cookbook.ingredientsJson);
+    final steps = CookbookStep.fromJsonArrayString(cookbook.stepJson);
+    return CookbookDto(cookbook: cookbook, ingredients: ingredients, steps: steps);
+  }
+
+  /// 从json生成
+  static CookbookDto fromJson(String json) {
+    return fromMap(jsonDecode(json));
+  }
+
+  /// 生成json
+  String toJson() {
+    return jsonEncode(toMap());
+  }
+}

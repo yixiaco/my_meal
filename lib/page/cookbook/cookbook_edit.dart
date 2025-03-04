@@ -29,14 +29,13 @@ class CookbookEdit extends StatefulHookConsumerWidget {
 }
 
 class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepAliveClientMixin {
-  /// 菜谱对象
-  Cookbook _cookbook = Cookbook();
+  late CookbookDto dto;
 
-  /// 步骤列表
-  List<CookbookStep> steps = [];
+  Cookbook get cookbook => dto.cookbook;
 
-  /// 用料列表
-  List<CookbookIngredients> ingredients = [];
+  List<CookbookStep> get steps => dto.steps;
+
+  List<CookbookIngredients> get ingredients => dto.ingredients;
 
   /// 表单key
   final _formKey = GlobalKey<FormState>();
@@ -52,6 +51,7 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
 
   @override
   void initState() {
+    dto = CookbookDto();
     SchedulerBinding.instance.addPostFrameCallback((Duration duration) async {
       if (mounted) {
         // 获取路由参数
@@ -59,9 +59,7 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
         if (arguments is Map<String, Object?>) {
           if (arguments case {'path': String? path}) {
             setState(() {
-              _cookbook.coverImagePath = path;
-              steps = [];
-              ingredients = [];
+              dto.cookbook.coverImagePath = path;
               _initCookbook();
             });
           } else if (arguments case {'id': int id}) {
@@ -71,9 +69,7 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
               return;
             } else {
               setState(() {
-                _cookbook = cookbook;
-                steps = CookbookStep.fromJsonArrayString(cookbook.stepJson);
-                ingredients = CookbookIngredients.fromJsonArrayString(cookbook.ingredientsJson);
+                dto = CookbookDto.fromCookbook(cookbook);
                 _initCookbook();
               });
             }
@@ -87,20 +83,20 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
       }
     });
     _titleController.addListener(() {
-      _cookbook.title = _titleController.text.trim();
+      cookbook.title = _titleController.text.trim();
       if (kDebugMode) {
-        print(_cookbook.title);
+        print(cookbook.title);
       }
     });
     _subtitleController.addListener(() {
-      _cookbook.subtitle = _subtitleController.text.trim();
+      cookbook.subtitle = _subtitleController.text.trim();
     });
     super.initState();
   }
 
   void _initCookbook() {
-    _titleController.text = _cookbook.title;
-    _subtitleController.text = _cookbook.subtitle ?? '';
+    _titleController.text = cookbook.title;
+    _subtitleController.text = cookbook.subtitle ?? '';
   }
 
   @override
@@ -145,7 +141,7 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
             // 预览需要传递对象过去
             Navigator.of(context).push(CupertinoPageRoute(
               builder: (BuildContext context) => CookbookPreview(
-                cookbook: _cookbook,
+                cookbook: cookbook,
                 steps: steps,
                 ingredients: ingredients,
               ),
@@ -164,12 +160,12 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
         key: _formKey,
         child: Column(
           children: [
-            if (_cookbook.coverImagePath != null)
+            if (cookbook.coverImagePath != null)
               MouseRegion(
                 cursor: SystemMouseCursors.click,
                 child: GestureDetector(
                   onTap: () {
-                    showCameraAndGalleryBottomSheet(context, (image) async {
+                    showCameraAndGalleryBottomSheet(context, useImport: false, onPickImage: (image) async {
                       // 获取文件扩展名
                       var name = image.name.contains('.') ? '.${image.name.split('.').last}' : '';
 
@@ -178,12 +174,12 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
 
                       Logger.root.info('临时文件：$tempPath');
                       setState(() {
-                        _cookbook.coverImagePath = tempPath;
+                        cookbook.coverImagePath = tempPath;
                       });
                     });
                   },
                   child: Image.file(
-                    File(_cookbook.coverImagePath!),
+                    File(cookbook.coverImagePath!),
                     width: double.infinity,
                     height: 400,
                     fit: BoxFit.cover,
@@ -263,32 +259,29 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
         onTap: () async {
           var validateGranularly = _formKey.currentState!.validateGranularly();
           if (validateGranularly.isEmpty) {
-            _cookbook.ingredientsJson = jsonEncode(ingredients);
-            _cookbook.stepJson = jsonEncode(steps);
-            if (_cookbook.cookbookId == null) {
-              _cookbook.createTime = DateTime.now();
-              _cookbook.updateTime = DateTime.now();
+            if (cookbook.cookbookId == null) {
+              cookbook.createTime = DateTime.now();
+              cookbook.updateTime = DateTime.now();
               // 保存到数据库中, 以获取新的cookbookId
-              await cookbookDaoSupport.saveOrUpdate(_cookbook);
+              await cookbookDaoSupport.saveOrUpdate(cookbook);
             } else {
-              _cookbook.updateTime = DateTime.now();
+              cookbook.updateTime = DateTime.now();
             }
             // 将图片移动到菜谱文件夹中，并改变对象中的图片地址
-            await ImageFileUtil.saveCookbookImage(_cookbook, steps);
-            // 更新步骤
-            _cookbook.stepJson = jsonEncode(steps);
+            await ImageFileUtil.saveCookbookImage(dto);
 
-            Logger.root.info('保存或更新菜谱： $_cookbook');
+            Logger.root.info('保存或更新菜谱： $dto');
 
             // 保存到数据库中
-            await cookbookDaoSupport.saveOrUpdate(_cookbook);
-
-            isPublish.value = true;
+            await cookbookDaoSupport.saveOrUpdate(cookbook);
 
             // 清除临时文件
             await ImageFileUtil.clearTempFiles();
 
-            ref.refresh(refreshProvider);
+            ref.invalidate(refreshProvider);
+
+            isPublish.value = true;
+
             Navigator.maybePop(context);
           } else {
             ToastHold.show(

@@ -3,14 +3,25 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:logging/logging.dart';
+import 'package:my_meal/components/toast.dart';
+import 'package:my_meal/icons/t_icons.dart';
 import 'package:my_meal/theme/var.dart';
+import 'package:my_meal/util/export_import_util.dart';
+
+import 'custom_tab.dart';
 
 typedef OnPickImageCallback = FutureOr<void> Function(XFile image);
 
 /// 底部弹出相机和相册选择
-void showCameraAndGalleryBottomSheet(BuildContext context, OnPickImageCallback onPickImage) {
+void showCameraAndGalleryBottomSheet(
+  BuildContext context, {
+  OnPickImageCallback? onPickImage,
+  useImport = true,
+  VoidCallback? importComputed,
+}) {
   showModalBottomSheet(
     context: context,
     builder: (_) => BottomSheet(
@@ -29,18 +40,38 @@ void showCameraAndGalleryBottomSheet(BuildContext context, OnPickImageCallback o
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               if (Platform.isAndroid || Platform.isIOS)
-                GestureDetector(
-                  onTap: () async {
+                CustomTab(
+                  icon: TIcons.camera_filled,
+                  text: '相机',
+                  onPressed: () async {
                     await _jump(context, ImageSource.camera, onPickImage);
                   },
-                  child: Tab(icon: Icon(Icons.camera_alt), text: '相机'),
                 ),
-              GestureDetector(
-                onTap: () async {
+              CustomTab(
+                icon: TIcons.image_search_filled,
+                text: '相册',
+                onPressed: () async {
                   await _jump(context, ImageSource.gallery, onPickImage);
                 },
-                child: Tab(icon: Icon(Icons.photo), text: '相册'),
               ),
+              if (useImport)
+                CustomTab(
+                  icon: TIcons.download_1,
+                  text: '导入',
+                  onPressed: () async {
+                    ExportImportUtil.importCookbook(computed: () {
+                      ToastHold.show(
+                        context,
+                        icon: Icons.check,
+                        '导入完成',
+                        gravity: ToastGravity.CENTER,
+                        toastDuration: Duration(seconds: 5),
+                      );
+                      Navigator.pop(context);
+                      importComputed?.call();
+                    });
+                  },
+                ),
             ],
           ),
         );
@@ -54,7 +85,7 @@ void showCameraAndGalleryBottomSheet(BuildContext context, OnPickImageCallback o
   );
 }
 
-Future<void> _jump(BuildContext context, ImageSource source, OnPickImageCallback onPickImage) async {
+Future<void> _jump(BuildContext context, ImageSource source, OnPickImageCallback? onPickImage) async {
   final ImagePicker picker = ImagePicker();
   // Pick an image.
   final XFile? image = await picker.pickImage(source: source);
@@ -62,6 +93,6 @@ Future<void> _jump(BuildContext context, ImageSource source, OnPickImageCallback
   if (image != null) {
     // 先关闭底部弹窗再跳转
     Navigator.pop(context);
-    await onPickImage(image);
+    await onPickImage?.call(image);
   }
 }

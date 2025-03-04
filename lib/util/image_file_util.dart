@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:archive/archive.dart';
+import 'package:collection/collection.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dartx/dartx_io.dart';
 import 'package:flutter/foundation.dart';
@@ -52,17 +54,7 @@ class ImageFileUtil {
       return null;
     }
 
-    var name = file.name;
-
-    final Directory dir = await getApplicationSupportDirectory();
-    final String targetDirPath = normalize(join(dir.path, id.toString()));
-    final String targetFilePath = normalize(join(dir.path, id.toString(), name));
-    var targetFile = File(targetFilePath);
-    if (targetFile.existsSync()) {
-      await targetFile.delete();
-    }
-    // 确保目标目录存在
-    await Directory(targetDirPath).create(recursive: true);
+    String targetFilePath = await getSaveFile(id, file.name);
     // 复制
     await file.copy(targetFilePath);
     return targetFilePath;
@@ -79,12 +71,14 @@ class ImageFileUtil {
   }
 
   /// 保存菜谱图片到文档目录中
-  static Future<void> saveCookbookImage(Cookbook cookbook, List<CookbookStep> steps) async {
+  static Future<void> saveCookbookImage(CookbookDto dto) async {
+    var cookbook = dto.cookbook;
+    var steps = dto.steps;
     var cookbookId = cookbook.cookbookId;
     if (cookbookId == null) {
       return;
     }
-    var dir = await getApplicationSupportDirectory();
+    var dir = await getSaveDirectory();
     var targetDir = join(dir.path, cookbookId.toString());
     if (cookbook.coverImagePath != null && !cookbook.coverImagePath!.startsWith(targetDir)) {
       cookbook.coverImagePath = await copyAssetToDataDir(cookbook.coverImagePath!, cookbookId);
@@ -99,14 +93,71 @@ class ImageFileUtil {
     }
   }
 
+  /// 保存字节菜谱图片到文档目录中
+  static Future<void> saveZipCookbookImage(CookbookDto dto, Map<String, ArchiveFile> imageMap) async {
+    var cookbook = dto.cookbook;
+    var steps = dto.steps;
+    var cookbookId = cookbook.cookbookId;
+    if (cookbookId == null) {
+      return;
+    }
+
+    if (cookbook.coverImagePath != null) {
+      var path = cookbook.coverImagePath!;
+      var file = imageMap[path];
+      if (file == null) {
+        return;
+      }
+      var targetFilePath = await getSaveFile(cookbookId, path);
+      cookbook.coverImagePath = targetFilePath;
+      await File(targetFilePath).writeAsBytes(file.readBytes()!);
+    }
+
+    if (steps.isNotEmpty) {
+      for (var value in steps) {
+        if (value.imagePath != null) {
+          var path = value.imagePath!;
+          var file = imageMap[path];
+          if (file == null) {
+            value.imagePath = null;
+            continue;
+          }
+          var targetFilePath = await getSaveFile(cookbookId, path);
+          value.imagePath = targetFilePath;
+          await File(targetFilePath).writeAsBytes(file.readBytes()!);
+        }
+      }
+    }
+  }
+
   /// 删除菜谱图片
   static Future<void> deleteCookbookIds(List<int> cookbookIds) async {
-    var dir = await getApplicationSupportDirectory();
+    var dir = await getSaveDirectory();
     await Future.forEach(cookbookIds, (cookbookId) {
       var targetDir = join(dir.path, cookbookId.toString());
       if (Directory(targetDir).existsSync()) {
         return Directory(targetDir).delete(recursive: true);
       }
     });
+  }
+
+  /// 获取保存目标文件
+  static Future<String> getSaveFile(int id, String name) async {
+    Directory dir = await getSaveDirectory();
+    final String targetDirPath = normalize(join(dir.path, id.toString()));
+    final String targetFilePath = normalize(join(dir.path, id.toString(), name));
+    var targetFile = File(targetFilePath);
+    if (targetFile.existsSync()) {
+      await targetFile.delete();
+    }
+    // 确保目标目录存在
+    await Directory(targetDirPath).create(recursive: true);
+    return targetFilePath;
+  }
+
+  /// 获取保存目录
+  static Future<Directory> getSaveDirectory() async {
+    final Directory dir = await getApplicationSupportDirectory();
+    return dir;
   }
 }
