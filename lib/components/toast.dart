@@ -32,6 +32,132 @@ class ToastHold extends InheritedTheme {
     return theme?.data;
   }
 
+  /// 成功提示
+  static void success(
+    BuildContext context,
+    String msg, {
+    ToastGravity gravity = ToastGravity.TOP,
+    bool close = false,
+    Duration toastDuration = const Duration(seconds: 5),
+    Duration fadeDuration = const Duration(milliseconds: 350),
+    bool ignorePointer = false,
+    bool isDismissible = false,
+  }) {
+    var themeData = TTheme.of(context);
+    show(
+      context,
+      msg,
+      icon: Icon(TIcons.check_circle_filled, color: themeData.colorScheme.successColor),
+      close: close,
+      gravity: gravity,
+      toastDuration: toastDuration,
+      fadeDuration: fadeDuration,
+      ignorePointer: ignorePointer,
+      isDismissible: isDismissible,
+    );
+  }
+
+  /// 警告提示
+  static void warning(
+      BuildContext context,
+      String msg, {
+        ToastGravity gravity = ToastGravity.TOP,
+        bool close = false,
+        Duration toastDuration = const Duration(seconds: 5),
+        Duration fadeDuration = const Duration(milliseconds: 350),
+        bool ignorePointer = false,
+        bool isDismissible = false,
+      }) {
+    var themeData = TTheme.of(context);
+    show(
+      context,
+      msg,
+      icon: Icon(TIcons.error_circle_filled, color: themeData.colorScheme.warningColor),
+      close: close,
+      gravity: gravity,
+      toastDuration: toastDuration,
+      fadeDuration: fadeDuration,
+      ignorePointer: ignorePointer,
+      isDismissible: isDismissible,
+    );
+  }
+
+  /// 错误提示
+  static void error(
+      BuildContext context,
+      String msg, {
+        ToastGravity gravity = ToastGravity.TOP,
+        bool close = false,
+        Duration toastDuration = const Duration(seconds: 5),
+        Duration fadeDuration = const Duration(milliseconds: 350),
+        bool ignorePointer = false,
+        bool isDismissible = false,
+      }) {
+    var themeData = TTheme.of(context);
+    show(
+      context,
+      msg,
+      icon: Icon(TIcons.error_circle_filled, color: themeData.colorScheme.errorColor),
+      close: close,
+      gravity: gravity,
+      toastDuration: toastDuration,
+      fadeDuration: fadeDuration,
+      ignorePointer: ignorePointer,
+      isDismissible: isDismissible,
+    );
+  }
+
+  /// 消息提示
+  static void info(
+      BuildContext context,
+      String msg, {
+        ToastGravity gravity = ToastGravity.TOP,
+        bool close = false,
+        Duration toastDuration = const Duration(seconds: 5),
+        Duration fadeDuration = const Duration(milliseconds: 350),
+        bool ignorePointer = false,
+        bool isDismissible = false,
+      }) {
+    var themeData = TTheme.of(context);
+    show(
+      context,
+      msg,
+      icon: Icon(TIcons.info_circle_filled, color: themeData.colorScheme.brandColor),
+      close: close,
+      gravity: gravity,
+      toastDuration: toastDuration,
+      fadeDuration: fadeDuration,
+      ignorePointer: ignorePointer,
+      isDismissible: isDismissible,
+    );
+  }
+
+  /// 帮助提示
+  static void help(
+      BuildContext context,
+      String msg, {
+        ToastGravity gravity = ToastGravity.TOP,
+        bool close = false,
+        Duration toastDuration = const Duration(seconds: 5),
+        Duration fadeDuration = const Duration(milliseconds: 350),
+        bool ignorePointer = false,
+        bool isDismissible = false,
+      }) {
+    var themeData = TTheme.of(context);
+    show(
+      context,
+      msg,
+      icon: Icon(TIcons.help_circle_filled, color: themeData.colorScheme.brandColor),
+      close: close,
+      gravity: gravity,
+      toastDuration: toastDuration,
+      fadeDuration: fadeDuration,
+      ignorePointer: ignorePointer,
+      isDismissible: isDismissible,
+    );
+  }
+
+  /// 显示提示
   static void show(
     BuildContext context,
     String msg, {
@@ -41,7 +167,8 @@ class ToastHold extends InheritedTheme {
     Duration fadeDuration = const Duration(milliseconds: 350),
     bool ignorePointer = false,
     bool isDismissible = false,
-    IconData? icon,
+    IconData? iconData,
+    Icon? icon,
   }) {
     final FToast? fToast = ToastHold.of(context);
     if (fToast != null) {
@@ -58,13 +185,15 @@ class ToastHold extends InheritedTheme {
             mainAxisSize: MainAxisSize.min,
             spacing: ThemeVar.spacer,
             children: [
-              if (icon != null)
-                Icon(
-                  icon,
-                  color: colorScheme.brandColor,
-                  size: themeData.fontData.fontSizeBodyMedium + 6,
+              if (icon != null || iconData != null)
+                IconTheme.merge(
+                  data: IconThemeData(
+                    color: colorScheme.brandColor,
+                    size: themeData.fontData.fontSizeBodyMedium + 6,
+                  ),
+                  child: icon ?? Icon(iconData),
                 ),
-              Text(msg),
+              Flexible(child: Text(msg)),
               if (close)
                 MouseRegion(
                   cursor: SystemMouseCursors.click,
@@ -93,11 +222,13 @@ class ToastHold extends InheritedTheme {
     }
   }
 
+  /// 移除自定义Toast
   static void removeCustomToastOf(BuildContext context) {
     final FToast? fToast = ToastHold.of(context);
     fToast?.removeCustomToast();
   }
 
+  /// 移除所有自定义Toast
   static void removeQueuedCustomToastsOf(BuildContext context) {
     final FToast? fToast = ToastHold.of(context);
     fToast?.removeQueuedCustomToasts();

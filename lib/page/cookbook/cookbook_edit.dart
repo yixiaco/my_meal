@@ -282,15 +282,11 @@ class _CookbookEditState extends ConsumerState<CookbookEdit> with AutomaticKeepA
 
             isPublish.value = true;
 
+            ToastHold.success(context, '发布成功');
+
             Navigator.maybePop(context);
           } else {
-            ToastHold.show(
-              context,
-              icon: Icons.error_outline_rounded,
-              validateGranularly.first.errorText!,
-              gravity: ToastGravity.TOP,
-              toastDuration: Duration(seconds: 2),
-            );
+            ToastHold.error(context, validateGranularly.first.errorText!);
           }
         },
       ),

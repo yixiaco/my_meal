@@ -59,16 +59,14 @@ void showCameraAndGalleryBottomSheet(
                   icon: TIcons.download_1,
                   text: '导入',
                   onPressed: () async {
-                    ExportImportUtil.importCookbook(computed: () {
-                      ToastHold.show(
-                        context,
-                        icon: Icons.check,
-                        '导入完成',
-                        gravity: ToastGravity.CENTER,
-                        toastDuration: Duration(seconds: 5),
-                      );
+                    ExportImportUtil.importCookbook(context, computed: (count) {
+                      if (count == 0) {
+                        ToastHold.warning(context, '未发现菜谱文件');
+                      } else {
+                        ToastHold.success(context, '导入完成，共导入 $count 个菜谱');
+                        importComputed?.call();
+                      }
                       Navigator.pop(context);
-                      importComputed?.call();
                     });
                   },
                 ),

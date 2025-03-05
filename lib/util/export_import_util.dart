@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:logging/logging.dart';
+import 'package:my_meal/basic/functions.dart';
 import 'package:my_meal/components/toast.dart';
 import 'package:my_meal/dao/cookbook_dao.dart';
 import 'package:my_meal/model/cookbook.dart';
@@ -79,37 +80,40 @@ class ExportImportUtil {
       print('选择的保存路径为：$outputFile');
     }
 
-    // 示例：将一些文本写入到选中的文件路径
     try {
-      await File(outputFile).writeAsBytes(zipData);
+      // 在PC平台不会发生实际写入，需要手动写入文件
+      if (isPc()) {
+        await File(outputFile).writeAsBytes(zipData);
+      }
       Logger.root.info('文件已保存: $outputFile');
-      ToastHold.show(
-        context,
-        icon: Icons.check,
-        '文件已保存: $outputFile',
-        gravity: ToastGravity.CENTER,
-        toastDuration: Duration(seconds: 2),
-      );
+      ToastHold.success(context, '文件已保存: $outputFile');
       return true;
     } catch (e) {
       Logger.root.severe('保存文件时出错: $e');
-      ToastHold.show(
-        context,
-        icon: Icons.error_outline_rounded,
-        '保存文件时出错: $e',
-        gravity: ToastGravity.CENTER,
-        toastDuration: Duration(seconds: 5),
-      );
+      ToastHold.error(context, '保存文件时出错: $e');
       return false;
     }
   }
 
+  /// 是否是PC平台
+  static bool isPc() {
+    return Platform.isWindows || Platform.isMacOS || Platform.isLinux || Platform.isFuchsia;
+  }
+
+
   /// 导入菜谱
-  static void importCookbook({VoidCallback? computed}) async {
-    var result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['zip'],
-    );
+  static void importCookbook(BuildContext context, {TConsumer<int>? computed}) async {
+    FilePickerResult? result;
+    if (isPc()) {
+      result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['zip'],
+      );
+    } else {
+      result = await FilePicker.platform.pickFiles(
+        type: FileType.any,
+      );
+    }
     if (result == null) {
       // User canceled the picker
       return;
@@ -119,6 +123,10 @@ class ExportImportUtil {
       return;
     }
     final inputStream = InputFileStream(path);
+    if (!isZipFile(inputStream.readBytes(4).toUint8List())) {
+      ToastHold.warning(context, '请选择有效的压缩包文件');
+      return;
+    }
     // Decode the zip from the InputFileStream. The archive will have the contents of the
     // zip, without having stored the data in memory.
     final archive = ZipDecoder().decodeStream(inputStream);
@@ -156,6 +164,23 @@ class ExportImportUtil {
       await ImageFileUtil.saveZipCookbookImage(dto, images);
       await cookbookDaoSupport.update(dto.cookbook);
     }
-    computed?.call();
+    computed?.call(group.length);
+  }
+
+  /// 判断是否是zip文件
+  static bool isZipFile(Uint8List? bytes) {
+    if (bytes == null) {
+      return false;
+    }
+    // 读取文件的前4个字节，ZIP文件的头部通常是 'PK'
+    if (bytes.length < 4) {
+      // 文件太小，不可能是ZIP文件
+      return false;
+    }
+    // 检查前两个字节是否是 ZIP 文件的标识符 'PK' (0x50, 0x4B)
+    if (bytes[0] == 0x50 && bytes[1] == 0x4B) {
+      return true;
+    }
+    return false;
   }
 }
