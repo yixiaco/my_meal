@@ -104,17 +104,6 @@ class _CookbookStepEditState extends ConsumerState<CookbookStepEdit> {
                 child: child,
               ),
             ),
-            //
-            //
-            // child: Container(
-            //   height: 250,
-            //   decoration: BoxDecoration(
-            //     borderRadius: BorderRadius.circular(ThemeVar.borderRadiusExtraLarge),
-            //     color: colorScheme.bgColorSecondaryContainer,
-            //   ),
-            //   clipBehavior: Clip.antiAlias,
-            //   child: child,
-            // ),
           ),
         ),
         TextFormField(

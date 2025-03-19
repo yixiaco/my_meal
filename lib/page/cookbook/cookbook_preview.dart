@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:my_meal/components/cookbook_ingredients_preview.dart';
 import 'package:my_meal/components/cookbook_step_preview.dart';
+import 'package:my_meal/components/image_preview.dart';
 import 'package:my_meal/dao/cookbook_dao.dart';
 import 'package:my_meal/model/cookbook.dart';
 import 'package:my_meal/route.dart';
@@ -97,8 +98,7 @@ class _CookbookEditState extends ConsumerState<CookbookPreview> with AutomaticKe
               visualDensity: VisualDensity.compact,
             ),
             onPressed: () {
-              Navigator.pushReplacementNamed(context, RouteQuery.cookbookEdit,
-                  arguments: {'id': _cookbook.cookbookId});
+              Navigator.pushReplacementNamed(context, RouteQuery.cookbookEdit, arguments: {'id': _cookbook.cookbookId});
             },
             child: Text('编辑', style: TextStyle(color: colorScheme.textColorPrimary, fontWeight: FontWeight.bold)),
           ),
@@ -112,11 +112,18 @@ class _CookbookEditState extends ConsumerState<CookbookPreview> with AutomaticKe
       child: Column(
         children: [
           if (effectiveCookbook.coverImagePath != null)
-            Image.file(
-              File(effectiveCookbook.coverImagePath!),
-              width: double.infinity,
-              height: 400,
-              fit: BoxFit.cover,
+            SizedBox(
+              height: 250,
+              child: PhotoViewScreen(
+                imageUrl: effectiveCookbook.coverImagePath!,
+                heroTag: effectiveCookbook.hashCode.toString(),
+                child: Image.file(
+                  File(effectiveCookbook.coverImagePath!),
+                  width: double.infinity,
+                  height: 400,
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

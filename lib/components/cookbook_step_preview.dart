@@ -6,6 +6,8 @@ import 'package:my_meal/theme/theme.dart';
 import 'package:my_meal/theme/theme_data.dart';
 import 'package:my_meal/theme/var.dart';
 
+import 'image_preview.dart';
+
 class CookbookStepPreview extends StatelessWidget {
   const CookbookStepPreview(this.steps, {super.key});
 
@@ -37,12 +39,16 @@ class CookbookStepPreview extends StatelessWidget {
             borderRadius: BorderRadius.circular(ThemeVar.borderRadiusExtraLarge),
             color: colorScheme.bgColorSecondaryContainer,
             clipBehavior: Clip.antiAlias,
-            child: SizedBox(
-              height: 250,
-              child: Image.file(
-                File(step.imagePath!),
-                width: double.infinity,
-                fit: BoxFit.cover,
+            child: PhotoViewScreen(
+              imageUrl: step.imagePath!,
+              heroTag: step.hashCode.toString(),
+              child: SizedBox(
+                height: 250,
+                child: Image.file(
+                  File(step.imagePath!),
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),

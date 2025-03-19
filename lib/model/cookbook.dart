@@ -116,10 +116,12 @@ class CookbookDto {
 
   CookbookDto({
     Cookbook? cookbook,
-    this.ingredients = const [],
-    this.steps = const [],
+    List<CookbookIngredients>? ingredients,
+    List<CookbookStep>? steps,
   }) {
     _cookbook = cookbook ?? Cookbook();
+    this.ingredients = ingredients ?? [];
+    this.steps = steps ?? [];
   }
 
   /// 生成有效菜谱
